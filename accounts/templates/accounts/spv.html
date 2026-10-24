@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard SPV</title>
+</head>
+<body>
+    <h1>Dashboard SPV</h1>
+    <p>Halo, {{ user.username }}.</p>
+    <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit">Keluar</button>
+    </form>
+</body>
+</html>
