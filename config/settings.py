@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'laporan',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -134,3 +135,8 @@ MAILERS = {
     },
 }
 LOGIN_URL = 'accounts:login'
+
+LOGIN_URL = 'accounts:login'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
