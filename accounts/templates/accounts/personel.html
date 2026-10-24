@@ -7,6 +7,15 @@
 <body>
     <h1>Halaman Personel</h1>
     <p>Halo, {{ user.username }}.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color:green;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <p><a href="{% url 'laporan:buat' %}">Buat laporan mingguan</a></p>
+
     <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
         <button type="submit">Keluar</button>
