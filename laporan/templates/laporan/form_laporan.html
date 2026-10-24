@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Mingguan</title>
+</head>
+<body>
+    <h1>Laporan Mingguan</h1>
+    <p><a href="{% url 'accounts:halaman_personel' %}">Kembali</a></p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <p>
+            {{ form.periode_minggu.label_tag }}
+            {{ form.periode_minggu }}
+            {{ form.periode_minggu.errors }}
+        </p>
+
+        {% for hari in form.blok_hari %}
+        <fieldset>
+            <legend>{{ hari.nama }}</legend>
+            <p>{{ hari.kegiatan.label_tag }}<br>{{ hari.kegiatan }}{{ hari.kegiatan.errors }}</p>
+            <p>{{ hari.masalah.label_tag }}<br>{{ hari.masalah }}</p>
+            <p>{{ hari.tindakan.label_tag }}<br>{{ hari.tindakan }}</p>
+            <p>{{ hari.hasil.label_tag }}<br>{{ hari.hasil }}</p>
+        </fieldset>
+        {% endfor %}
+
+        <button type="submit">Simpan Laporan</button>
+    </form>
+</body>
+</html>
