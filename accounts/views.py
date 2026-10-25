@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -58,12 +60,28 @@ def halaman_personel(request):
 
 @role_required('spv')
 def dashboard_spv(request):
+    tim = request.GET.get('tim', '')
+    minggu = request.GET.get('minggu', '')
+
     semua = Laporan.objects.select_related('personel').prefetch_related('kegiatan')
+    if tim:
+        semua = semua.filter(personel__tim=tim)
+    if minggu:
+        try:
+            semua = semua.filter(
+                periode_minggu=datetime.date.fromisoformat(minggu)
+            )
+        except ValueError:
+            minggu = ''
+
     daftar = []
+    daftar_kendala = []
     for laporan in semua:
         kelompok = kelompokkan(laporan)
         jumlah = {kategori: len(item) for kategori, item in kelompok.items()}
         daftar.append({'laporan': laporan, 'jumlah': jumlah})
+        for kegiatan in kelompok['kendala']:
+            daftar_kendala.append({'laporan': laporan, 'kegiatan': kegiatan})
 
     ringkasan = {
         'total_laporan': len(daftar),
@@ -71,7 +89,22 @@ def dashboard_spv(request):
         'total_kendala': sum(d['jumlah']['kendala'] for d in daftar),
         'total_selesai': sum(d['jumlah']['selesai'] for d in daftar),
     }
+
+    pilihan_tim = sorted(
+        {t for t in Laporan.objects.values_list('personel__tim', flat=True) if t}
+    )
+    pilihan_minggu = (
+        Laporan.objects.order_by('-periode_minggu')
+        .values_list('periode_minggu', flat=True)
+        .distinct()
+    )
+
     return render(request, 'accounts/spv.html', {
         'daftar': daftar,
+        'daftar_kendala': daftar_kendala[:5],
         'ringkasan': ringkasan,
+        'tim': tim,
+        'minggu': minggu,
+        'pilihan_tim': pilihan_tim,
+        'pilihan_minggu': pilihan_minggu,
     })
