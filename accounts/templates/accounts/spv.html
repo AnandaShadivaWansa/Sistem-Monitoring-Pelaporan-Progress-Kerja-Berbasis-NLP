@@ -7,6 +7,47 @@
 <body>
     <h1>Dashboard SPV</h1>
     <p>Halo, {{ user.username }}.</p>
+
+    <h2>Ringkasan</h2>
+    <ul>
+        <li>Total laporan: {{ ringkasan.total_laporan }}</li>
+        <li>Laporan yang memuat kendala: {{ ringkasan.laporan_berkendala }}</li>
+        <li>Total kegiatan selesai: {{ ringkasan.total_selesai }}</li>
+        <li>Total kegiatan berkendala: {{ ringkasan.total_kendala }}</li>
+    </ul>
+
+    <h2>Daftar Laporan</h2>
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Personel</th>
+                <th>Tim</th>
+                <th>Minggu</th>
+                <th>Selesai</th>
+                <th>Pending</th>
+                <th>Kendala</th>
+                <th>Improvement</th>
+                <th>Detail</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in daftar %}
+            <tr>
+                <td>{{ d.laporan.personel.username }}</td>
+                <td>{{ d.laporan.personel.tim|default:"-" }}</td>
+                <td>{{ d.laporan.periode_minggu|date:"d/m/Y" }}</td>
+                <td>{{ d.jumlah.selesai }}</td>
+                <td>{{ d.jumlah.pending }}</td>
+                <td>{{ d.jumlah.kendala }}</td>
+                <td>{{ d.jumlah.improvement }}</td>
+                <td><a href="{% url 'laporan:detail' d.laporan.pk %}">Lihat</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8">Belum ada laporan.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
         <button type="submit">Keluar</button>
