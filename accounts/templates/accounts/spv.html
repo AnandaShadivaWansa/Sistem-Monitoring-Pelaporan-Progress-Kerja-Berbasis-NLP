@@ -8,12 +8,50 @@
     <h1>Dashboard SPV</h1>
     <p>Halo, {{ user.username }}.</p>
 
+    <form method="get">
+        <label>Tim
+            <select name="tim">
+                <option value="">Semua tim</option>
+                {% for t in pilihan_tim %}
+                    <option value="{{ t }}" {% if t == tim %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Minggu
+            <select name="minggu">
+                <option value="">Semua minggu</option>
+                {% for m in pilihan_minggu %}
+                    <option value="{{ m|date:'Y-m-d' }}" {% if m|date:'Y-m-d' == minggu %}selected{% endif %}>
+                        {{ m|date:"d/m/Y" }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Terapkan</button>
+        <a href="{% url 'accounts:dashboard_spv' %}">Reset</a>
+    </form>
+
     <h2>Ringkasan</h2>
     <ul>
         <li>Total laporan: {{ ringkasan.total_laporan }}</li>
         <li>Laporan yang memuat kendala: {{ ringkasan.laporan_berkendala }}</li>
         <li>Total kegiatan selesai: {{ ringkasan.total_selesai }}</li>
         <li>Total kegiatan berkendala: {{ ringkasan.total_kendala }}</li>
+    </ul>
+
+    <h2>Kendala Teratas</h2>
+    <ul>
+        {% for k in daftar_kendala %}
+            <li>
+                <strong>{{ k.laporan.personel.username }}</strong>
+                ({{ k.laporan.periode_minggu|date:"d/m/Y" }}, {{ k.kegiatan.tanggal|date:"d/m" }}):
+                {{ k.kegiatan.kegiatan }}
+                &ndash; {{ k.kegiatan.masalah|truncatechars:120 }}
+                <a href="{% url 'laporan:detail' k.laporan.pk %}">Lihat</a>
+            </li>
+        {% empty %}
+            <li>Tidak ada kendala.</li>
+        {% endfor %}
     </ul>
 
     <h2>Daftar Laporan</h2>
