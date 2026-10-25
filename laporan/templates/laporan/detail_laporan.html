@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Mingguan</title>
+</head>
+<body>
+    <p><a href="{% url 'accounts:halaman_personel' %}">Kembali</a></p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color:green;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <h1>Laporan Mingguan</h1>
+    <p>
+        {{ laporan.personel.username }} &middot;
+        {{ laporan.periode_minggu|date:"d/m/Y" }} - {{ akhir_minggu|date:"d/m/Y" }}
+    </p>
+
+    <h2>Ringkasan</h2>
+    <p>
+        Minggu ini terdapat {{ total }} kegiatan:
+        {{ jumlah.selesai }} selesai,
+        {{ jumlah.pending }} pending,
+        {{ jumlah.kendala }} mengalami kendala,
+        {{ jumlah.improvement }} improvement.
+    </p>
+
+    <h2>Selesai ({{ jumlah.selesai }})</h2>
+    <ul>
+        {% for k in kelompok.selesai %}
+            <li>{{ k.tanggal|date:"d/m" }} &ndash; {{ k.kegiatan }}</li>
+        {% empty %}
+            <li>Tidak ada.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Pending ({{ jumlah.pending }})</h2>
+    <ul>
+        {% for k in kelompok.pending %}
+            <li>{{ k.tanggal|date:"d/m" }} &ndash; {{ k.kegiatan }}
+                {% if k.hasil %}<br><em>Status: {{ k.hasil }}</em>{% endif %}
+            </li>
+        {% empty %}
+            <li>Tidak ada.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Kendala ({{ jumlah.kendala }})</h2>
+    <ul>
+        {% for k in kelompok.kendala %}
+            <li>{{ k.tanggal|date:"d/m" }} &ndash; {{ k.kegiatan }}
+                <br><strong>Masalah:</strong> {{ k.masalah|linebreaksbr }}
+                {% if k.tindakan %}
+                    <br><strong>Tindakan:</strong>
+                    <ul>
+                        {% for p in k.poin_tindakan %}<li>{{ p }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+                {% if k.hasil %}<strong>Hasil:</strong> {{ k.hasil|linebreaksbr }}{% endif %}
+            </li>
+        {% empty %}
+            <li>Tidak ada.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Improvement ({{ jumlah.improvement }})</h2>
+    <ul>
+        {% for k in kelompok.improvement %}
+            <li>{{ k.tanggal|date:"d/m" }} &ndash; {{ k.kegiatan }}</li>
+        {% empty %}
+            <li>Tidak ada.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.db import models
 
@@ -54,6 +56,12 @@ class KegiatanHarian(models.Model):
                 name='unik_kegiatan_per_hari',
             )
         ]
+
+    @property
+    def poin_tindakan(self):
+        teks = re.sub(r'^\s*tindakan\s*:\s*', '', self.tindakan, flags=re.I)
+        bagian = re.split(r'\n|\s-\s(?=\S)', teks)
+        return [b.strip(' -') for b in bagian if b.strip(' -')]
 
     def __str__(self):
         return f'{self.laporan} - {self.tanggal}'
