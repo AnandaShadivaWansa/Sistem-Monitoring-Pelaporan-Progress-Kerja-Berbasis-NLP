@@ -15,6 +15,19 @@
     {% endif %}
 
     <p><a href="{% url 'laporan:buat' %}">Buat laporan mingguan</a></p>
+    
+    <h2>Laporan Saya</h2>
+    <ul>
+        {% for l in daftar_laporan %}
+            <li>
+                <a href="{% url 'laporan:detail' l.pk %}">
+                    Minggu {{ l.periode_minggu|date:"d/m/Y" }}
+                </a>
+            </li>
+        {% empty %}
+            <li>Belum ada laporan.</li>
+        {% endfor %}
+    </ul>
 
     <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}

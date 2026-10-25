@@ -1,9 +1,14 @@
+import datetime
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.views import role_required
 
+from .analisis import kelompokkan
 from .forms import LaporanMingguanForm
 from .models import KegiatanHarian, Laporan
 
@@ -23,7 +28,24 @@ def buat_laporan(request):
                     for data in form.data_kegiatan()
                 ])
             messages.success(request, 'Laporan berhasil disimpan.')
-            return redirect('accounts:halaman_personel')
+            return redirect('laporan:detail', pk=laporan.pk)
     else:
         form = LaporanMingguanForm(personel=request.user)
     return render(request, 'laporan/form_laporan.html', {'form': form})
+
+
+@login_required
+def detail_laporan(request, pk):
+    laporan = get_object_or_404(Laporan, pk=pk)
+    if request.user.role != 'spv' and laporan.personel != request.user:
+        raise PermissionDenied
+
+    kelompok = kelompokkan(laporan)
+    jumlah = {kategori: len(item) for kategori, item in kelompok.items()}
+    return render(request, 'laporan/detail_laporan.html', {
+        'laporan': laporan,
+        'akhir_minggu': laporan.periode_minggu + datetime.timedelta(days=4),
+        'kelompok': kelompok,
+        'jumlah': jumlah,
+        'total': sum(jumlah.values()),
+    })

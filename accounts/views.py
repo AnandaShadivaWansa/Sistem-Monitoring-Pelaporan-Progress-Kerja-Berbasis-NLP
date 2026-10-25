@@ -45,7 +45,12 @@ def logout_view(request):
 
 @role_required('personel')
 def halaman_personel(request):
-    return render(request, 'accounts/personel.html')
+    daftar_laporan = request.user.laporan.all()
+    return render(
+        request,
+        'accounts/personel.html',
+        {'daftar_laporan': daftar_laporan},
+    )
 
 
 @role_required('spv')

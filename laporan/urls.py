@@ -6,4 +6,5 @@ app_name = 'laporan'
 
 urlpatterns = [
     path('baru/', views.buat_laporan, name='buat'),
+    path('<int:pk>/', views.detail_laporan, name='detail'),
 ]
