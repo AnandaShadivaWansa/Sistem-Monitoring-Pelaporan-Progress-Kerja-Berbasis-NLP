@@ -3,6 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
 
+from laporan.analisis import kelompokkan
+from laporan.models import Laporan
+
 
 def redirect_by_role(user):
     if user.role == 'spv':
@@ -55,4 +58,20 @@ def halaman_personel(request):
 
 @role_required('spv')
 def dashboard_spv(request):
-    return render(request, 'accounts/spv.html')
+    semua = Laporan.objects.select_related('personel').prefetch_related('kegiatan')
+    daftar = []
+    for laporan in semua:
+        kelompok = kelompokkan(laporan)
+        jumlah = {kategori: len(item) for kategori, item in kelompok.items()}
+        daftar.append({'laporan': laporan, 'jumlah': jumlah})
+
+    ringkasan = {
+        'total_laporan': len(daftar),
+        'laporan_berkendala': sum(1 for d in daftar if d['jumlah']['kendala'] > 0),
+        'total_kendala': sum(d['jumlah']['kendala'] for d in daftar),
+        'total_selesai': sum(d['jumlah']['selesai'] for d in daftar),
+    }
+    return render(request, 'accounts/spv.html', {
+        'daftar': daftar,
+        'ringkasan': ringkasan,
+    })
