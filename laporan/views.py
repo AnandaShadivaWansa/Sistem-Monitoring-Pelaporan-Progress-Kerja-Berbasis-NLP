@@ -5,12 +5,13 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from accounts.views import role_required
 
 from .analisis import kelompokkan
 from .forms import LaporanMingguanForm
-from .models import KegiatanHarian, Laporan
+from .models import Feedback, KegiatanHarian, Laporan
 
 
 @role_required('personel')
@@ -49,3 +50,18 @@ def detail_laporan(request, pk):
         'jumlah': jumlah,
         'total': sum(jumlah.values()),
     })
+
+
+@require_POST
+@role_required('spv')
+def tambah_feedback(request, pk):
+    laporan = get_object_or_404(Laporan, pk=pk)
+    isi = request.POST.get('isi', '').strip()
+    if not isi:
+        messages.error(request, 'Isi feedback tidak boleh kosong.')
+    elif len(isi) > 1000:
+        messages.error(request, 'Feedback maksimal 1000 karakter.')
+    else:
+        Feedback.objects.create(laporan=laporan, penulis=request.user, isi=isi)
+        messages.success(request, 'Feedback terkirim.')
+    return redirect('laporan:detail', pk=laporan.pk)
