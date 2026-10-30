@@ -74,5 +74,20 @@
             <li>Tidak ada.</li>
         {% endfor %}
     </ul>
+
+    <h2>Feedback Supervisor</h2>
+    {% for f in laporan.feedback.all %}
+        <p><strong>{{ f.penulis.username }}</strong><br>{{ f.isi|linebreaksbr }}</p>
+    {% empty %}
+        <p>Belum ada feedback.</p>
+    {% endfor %}
+
+    {% if request.user.role == 'spv' %}
+        <form method="post" action="{% url 'laporan:feedback' laporan.pk %}">
+            {% csrf_token %}
+            <textarea name="isi" rows="3" cols="60" required></textarea><br>
+            <button type="submit">Kirim Feedback</button>
+        </form>
+    {% endif %}
 </body>
 </html>
