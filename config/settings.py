@@ -1,9 +1,3 @@
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 """
 Django settings for config project.
 
@@ -134,7 +128,6 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
-LOGIN_URL = 'accounts:login'
 
 LOGIN_URL = 'accounts:login'
 
