@@ -1,94 +1,182 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard SPV</title>
-</head>
-<body>
-    <h1>Dashboard SPV</h1>
-    <p>Halo, {{ user.username }}.</p>
+{% extends 'base.html' %}
+{% load static %}
 
-    <form method="get">
-        <label>Tim
-            <select name="tim">
-                <option value="">Semua tim</option>
-                {% for t in pilihan_tim %}
+{% block title %}Dashboard Supervisor | WorkPulse{% endblock %}
+
+{% block content %}
+<header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-3">
+            <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
+                 class="h-10 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
+            <span class="hidden text-sm font-semibold text-navy sm:inline">WorkPulse</span>
+            <span class="rounded-full bg-navy px-2.5 py-0.5 text-xs font-medium text-white">Supervisor</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="hidden text-sm text-slate-500 sm:inline">
+                Masuk sebagai <span class="font-medium text-slate-700">{{ user.username }}</span>
+            </span>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Keluar
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="mx-auto max-w-6xl px-4 py-8">
+
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-navy">Dashboard supervisor</h1>
+        <p class="mt-1 text-sm text-slate-500">Pantau progress dan kendala laporan mingguan seluruh personel.</p>
+    </div>
+
+    <!-- Filter -->
+    <form method="get" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <div>
+                <label for="filter-tim" class="mb-1 block text-sm font-medium text-slate-700">Tim</label>
+                <select id="filter-tim" name="tim"
+                        class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20">
+                    <option value="">Semua tim</option>
+                    {% for t in pilihan_tim %}
                     <option value="{{ t }}" {% if t == tim %}selected{% endif %}>{{ t }}</option>
-                {% endfor %}
-            </select>
-        </label>
-        <label>Minggu
-            <select name="minggu">
-                <option value="">Semua minggu</option>
-                {% for m in pilihan_minggu %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="filter-minggu" class="mb-1 block text-sm font-medium text-slate-700">Minggu</label>
+                <select id="filter-minggu" name="minggu"
+                        class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20">
+                    <option value="">Semua minggu</option>
+                    {% for m in pilihan_minggu %}
                     <option value="{{ m|date:'Y-m-d' }}" {% if m|date:'Y-m-d' == minggu %}selected{% endif %}>
                         {{ m|date:"d/m/Y" }}
                     </option>
-                {% endfor %}
-            </select>
-        </label>
-        <button type="submit">Terapkan</button>
-        <a href="{% url 'accounts:dashboard_spv' %}">Reset</a>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="rounded-lg bg-brand-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40">
+                    Terapkan
+                </button>
+                <a href="{% url 'accounts:dashboard_spv' %}"
+                   class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Reset
+                </a>
+            </div>
+        </div>
     </form>
 
-    <h2>Ringkasan</h2>
-    <ul>
-        <li>Total laporan: {{ ringkasan.total_laporan }}</li>
-        <li>Laporan yang memuat kendala: {{ ringkasan.laporan_berkendala }}</li>
-        <li>Total kegiatan selesai: {{ ringkasan.total_selesai }}</li>
-        <li>Total kegiatan berkendala: {{ ringkasan.total_kendala }}</li>
-    </ul>
+    <!-- Ringkasan -->
+    <section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Total laporan</p>
+            <p class="mt-1 text-3xl font-bold text-navy">{{ ringkasan.total_laporan }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Laporan dengan kendala</p>
+            <p class="mt-1 text-3xl font-bold text-red-600">{{ ringkasan.laporan_berkendala }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Kegiatan selesai</p>
+            <p class="mt-1 text-3xl font-bold text-emerald-600">{{ ringkasan.total_selesai }}</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-xs font-medium text-slate-500">Kegiatan berkendala</p>
+            <p class="mt-1 text-3xl font-bold text-red-600">{{ ringkasan.total_kendala }}</p>
+        </div>
+    </section>
 
-    <h2>Kendala Teratas</h2>
-    <ul>
-        {% for k in daftar_kendala %}
-            <li>
-                <strong>{{ k.laporan.personel.username }}</strong>
-                ({{ k.laporan.periode_minggu|date:"d/m/Y" }}, {{ k.kegiatan.tanggal|date:"d/m" }}):
-                {{ k.kegiatan.kegiatan }}
-                &ndash; {{ k.kegiatan.masalah|truncatechars:120 }}
-                <a href="{% url 'laporan:detail' k.laporan.pk %}">Lihat</a>
+    <!-- Kendala teratas -->
+    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
+            <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
+            <h2 class="text-base font-semibold text-slate-800">Kendala teratas</h2>
+        </div>
+        <ul class="divide-y divide-slate-100">
+            {% for k in daftar_kendala %}
+            <li class="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="font-semibold text-slate-700">{{ k.laporan.personel.username }}</span>
+                        <span class="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600">Minggu {{ k.laporan.periode_minggu|date:"d/m/Y" }}</span>
+                        <span class="rounded-md bg-slate-100 px-2 py-0.5 text-slate-600">{{ k.kegiatan.tanggal|date:"d/m" }}</span>
+                    </div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-800">{{ k.kegiatan.kegiatan }}</p>
+                    <p class="mt-1 text-sm text-red-700">{{ k.kegiatan.masalah|truncatechars:120 }}</p>
+                </div>
+                <a href="{% url 'laporan:detail' k.laporan.pk %}"
+                   class="shrink-0 self-start rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Lihat
+                </a>
             </li>
-        {% empty %}
-            <li>Tidak ada kendala.</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Daftar Laporan</h2>
-    <table border="1" cellpadding="6" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Personel</th>
-                <th>Tim</th>
-                <th>Minggu</th>
-                <th>Selesai</th>
-                <th>Pending</th>
-                <th>Kendala</th>
-                <th>Improvement</th>
-                <th>Detail</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for d in daftar %}
-            <tr>
-                <td>{{ d.laporan.personel.username }}</td>
-                <td>{{ d.laporan.personel.tim|default:"-" }}</td>
-                <td>{{ d.laporan.periode_minggu|date:"d/m/Y" }}</td>
-                <td>{{ d.jumlah.selesai }}</td>
-                <td>{{ d.jumlah.pending }}</td>
-                <td>{{ d.jumlah.kendala }}</td>
-                <td>{{ d.jumlah.improvement }}</td>
-                <td><a href="{% url 'laporan:detail' d.laporan.pk %}">Lihat</a></td>
-            </tr>
             {% empty %}
-            <tr><td colspan="8">Belum ada laporan.</td></tr>
+            <li class="px-6 py-6 text-sm text-slate-400">Tidak ada kendala.</li>
             {% endfor %}
-        </tbody>
-    </table>
+        </ul>
+    </section>
 
-    <form method="post" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-        <button type="submit">Keluar</button>
-    </form>
-</body>
-</html>
+    <!-- Daftar laporan -->
+    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 px-6 py-4">
+            <h2 class="text-base font-semibold text-slate-800">Daftar laporan</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                    <tr>
+                        <th class="px-6 py-3">Personel</th>
+                        <th class="px-4 py-3">Tim</th>
+                        <th class="px-4 py-3">Minggu</th>
+                        <th class="px-4 py-3 text-center">Selesai</th>
+                        <th class="px-4 py-3 text-center">Pending</th>
+                        <th class="px-4 py-3 text-center">Kendala</th>
+                        <th class="px-4 py-3 text-center">Improvement</th>
+                        <th class="px-6 py-3 text-right">Detail</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for d in daftar %}
+                    <tr class="transition hover:bg-slate-50">
+                        <td class="px-6 py-3 font-medium text-slate-800">{{ d.laporan.personel.username }}</td>
+                        <td class="px-4 py-3 text-slate-600">{{ d.laporan.personel.tim|default:"-" }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-slate-600">{{ d.laporan.periode_minggu|date:"d/m/Y" }}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-block min-w-[2rem] rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">{{ d.jumlah.selesai }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-block min-w-[2rem] rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">{{ d.jumlah.pending }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            {% if d.jumlah.kendala %}
+                            <span class="inline-block min-w-[2rem] rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">{{ d.jumlah.kendala }}</span>
+                            {% else %}
+                            <span class="inline-block min-w-[2rem] rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">0</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-block min-w-[2rem] rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-brand-700">{{ d.jumlah.improvement }}</span>
+                        </td>
+                        <td class="px-6 py-3 text-right">
+                            <a href="{% url 'laporan:detail' d.laporan.pk %}"
+                               class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                                Lihat
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-10 text-center text-sm text-slate-400">Belum ada laporan.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+{% endblock %}
