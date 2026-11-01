@@ -92,6 +92,34 @@
         </div>
     </section>
 
+    <!-- Grafik -->
+    {% if daftar %}
+    <section class="mt-6 grid gap-3 lg:grid-cols-3">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-800">Komposisi kegiatan</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Seluruh kegiatan pada laporan yang ditampilkan</p>
+            <div class="relative mt-4 h-64">
+                <canvas id="grafik-komposisi" aria-label="Grafik komposisi kategori kegiatan" role="img"></canvas>
+            </div>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+            <h2 class="text-base font-semibold text-slate-800">Kegiatan per laporan</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Maksimal 12 laporan terbaru</p>
+            <div class="relative mt-4 h-64">
+                <canvas id="grafik-laporan" aria-label="Grafik jumlah kegiatan per laporan" role="img"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <div id="data-grafik" hidden>
+        {% for d in daftar|slice:":12" %}
+        <span data-label="{{ d.laporan.personel.username }} · {{ d.laporan.periode_minggu|date:'d/m' }}"
+              data-selesai="{{ d.jumlah.selesai }}" data-pending="{{ d.jumlah.pending }}"
+              data-kendala="{{ d.jumlah.kendala }}" data-improvement="{{ d.jumlah.improvement }}"></span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Kendala teratas -->
     <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center gap-2 border-b border-slate-100 px-6 py-4">
@@ -179,4 +207,71 @@
         </div>
     </section>
 </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+    (function () {
+        var wadah = document.getElementById('data-grafik');
+        if (!wadah || typeof Chart === 'undefined') { return; }
+        var baris = Array.prototype.slice.call(wadah.children);
+        if (!baris.length) { return; }
+
+        var kategori = ['selesai', 'pending', 'kendala', 'improvement'];
+        var nama = { selesai: 'Selesai', pending: 'Pending', kendala: 'Kendala', improvement: 'Improvement' };
+        var warna = { selesai: '#10b981', pending: '#fbbf24', kendala: '#ef4444', improvement: '#1e7be8' };
+
+        function angka(el, k) { return parseInt(el.dataset[k] || '0', 10); }
+
+        Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, sans-serif';
+        Chart.defaults.color = '#64748b';
+
+        // Grafik donat: total seluruh kegiatan per kategori
+        var total = kategori.map(function (k) {
+            return baris.reduce(function (jml, el) { return jml + angka(el, k); }, 0);
+        });
+        new Chart(document.getElementById('grafik-komposisi'), {
+            type: 'doughnut',
+            data: {
+                labels: kategori.map(function (k) { return nama[k]; }),
+                datasets: [{
+                    data: total,
+                    backgroundColor: kategori.map(function (k) { return warna[k]; }),
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                cutout: '62%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
+            }
+        });
+
+        // Grafik batang bertumpuk: kegiatan per laporan (urut dari yang lama ke yang baru)
+        var urut = baris.slice().reverse();
+        new Chart(document.getElementById('grafik-laporan'), {
+            type: 'bar',
+            data: {
+                labels: urut.map(function (el) { return el.dataset.label; }),
+                datasets: kategori.map(function (k) {
+                    return {
+                        label: nama[k],
+                        data: urut.map(function (el) { return angka(el, k); }),
+                        backgroundColor: warna[k],
+                        borderRadius: 4,
+                        maxBarThickness: 36
+                    };
+                })
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } },
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }
+                }
+            }
+        });
+    })();
+</script>
 {% endblock %}
