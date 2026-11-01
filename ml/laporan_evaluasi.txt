@@ -1,0 +1,50 @@
+Jumlah baris: 121 (asli=100, sintetis=21)
+Jumlah per label (asli + sintetis):
+  selesai: 48 + 0
+  pending: 33 + 0
+  kendala: 16 + 0
+  improvement: 3 + 21
+PERINGATAN: data ASLI < 25 baris untuk: kendala, improvement. Hasil evaluasi kelas ini hanya perkiraan awal.
+
+Metode evaluasi: cross-validation 3-fold, uji HANYA data asli (data sintetis=21 hanya ikut melatih; hasil bersifat perkiraan awal)
+Jumlah data uji per label: selesai=48, pending=33, kendala=16, improvement=3
+
+== MODEL (TF-IDF + Logistic Regression) ==
+              precision    recall  f1-score   support
+
+     selesai      0.837     0.854     0.845        48
+     pending      0.743     0.788     0.765        33
+     kendala      0.750     0.562     0.643        16
+ improvement      0.750     1.000     0.857         3
+
+    accuracy                          0.790       100
+   macro avg      0.770     0.801     0.778       100
+weighted avg      0.789     0.790     0.787       100
+
+Confusion matrix:
+baris=aktual, kolom=prediksi
+                  selesai    pending    kendala  improveme
+selesai                41          5          1          1
+pending                 5         26          2          0
+kendala                 3          4          9          0
+improvement             0          0          0          3
+
+== PEMBANDING (aturan kata kunci) ==
+              precision    recall  f1-score   support
+
+     selesai      0.667     0.750     0.706        48
+     pending      0.560     0.424     0.483        33
+     kendala      0.300     0.375     0.333        16
+ improvement      0.000     0.000     0.000         3
+
+    accuracy                          0.560       100
+   macro avg      0.382     0.387     0.380       100
+weighted avg      0.553     0.560     0.551       100
+
+
+F1 macro model     : 0.778
+F1 macro pembanding: 0.380
+Selisih            : +0.397
+Target F1 >= 0.80: belum tercapai
+
+Model disimpan ke: ml/model.joblib

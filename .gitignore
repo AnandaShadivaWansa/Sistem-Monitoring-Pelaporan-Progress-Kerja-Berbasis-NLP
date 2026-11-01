@@ -18,6 +18,4 @@ media/
 .vscode/
 media/
 ml/data/
-ml/model.joblib
-ml/laporan_evaluasi.txt
 ml/buat_data_uji.py
