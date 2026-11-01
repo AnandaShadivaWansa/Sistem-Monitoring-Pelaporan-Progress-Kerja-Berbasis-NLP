@@ -37,6 +37,40 @@
         <p class="mt-1 text-sm text-slate-500">Isi kegiatan setiap hari kerja beserta masalah, tindakan, dan hasilnya.</p>
     </div>
 
+    <details class="group mb-5 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4" open>
+        <summary class="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-navy">
+            Panduan pengisian
+            <span class="text-slate-400 transition group-open:rotate-180" aria-hidden="true">&#9662;</span>
+        </summary>
+        <div class="mt-3 space-y-3 text-sm text-slate-700">
+            <dl class="grid gap-3 sm:grid-cols-2">
+                <div>
+                    <dt class="font-medium text-slate-800">Kegiatan</dt>
+                    <dd class="text-slate-600">Apa yang dikerjakan hari itu, ditulis jelas dalam satu atau dua kalimat.</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-slate-800">Masalah</dt>
+                    <dd class="text-slate-600">Isi <span class="font-medium">hanya bila ada hambatan</span>. Kosongkan bila pekerjaan berjalan lancar.</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-slate-800">Tindakan</dt>
+                    <dd class="text-slate-600">Langkah yang dilakukan. Pisahkan tiap langkah dengan tanda <code class="rounded bg-white px-1">-</code> atau baris baru.</dd>
+                </div>
+                <div>
+                    <dt class="font-medium text-slate-800">Hasil</dt>
+                    <dd class="text-slate-600">Status akhir: selesai, masih menunggu, atau akan dilanjutkan.</dd>
+                </div>
+            </dl>
+            <div class="rounded-lg bg-white px-4 py-3">
+                <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Contoh</p>
+                <p class="mt-1"><span class="font-medium">Kegiatan:</span> Pengecekan konveyor yang tidak bekerja normal.</p>
+                <p><span class="font-medium">Tindakan:</span> Reposisi sensor - Uji coba konveyor</p>
+                <p><span class="font-medium">Hasil:</span> Selesai, konveyor sudah normal.</p>
+            </div>
+            <p class="text-xs text-slate-500">Sistem mengelompokkan setiap kegiatan secara otomatis menjadi Selesai, Pending, Kendala, atau Improvement berdasarkan isian ini.</p>
+        </div>
+    </details>
+
     <form method="post" class="form-laporan space-y-5" id="form-laporan">
         {% csrf_token %}
 
