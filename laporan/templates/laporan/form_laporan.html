@@ -1,34 +1,109 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Laporan Mingguan</title>
-</head>
-<body>
-    <h1>Laporan Mingguan</h1>
-    <p><a href="{% url 'accounts:halaman_personel' %}">Kembali</a></p>
+{% extends 'base.html' %}
+{% load static %}
 
-    <form method="post">
+{% block title %}Laporan Mingguan | WorkPulse{% endblock %}
+
+{% block head %}
+<style type="text/tailwindcss">
+    .form-laporan label { @apply mb-1 block text-sm font-medium text-slate-700; }
+    .form-laporan input:not([type=hidden]):not([type=checkbox]):not([type=radio]),
+    .form-laporan select,
+    .form-laporan textarea {
+        @apply w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20;
+    }
+    .form-laporan textarea { @apply min-h-[5rem] resize-y; }
+    .form-laporan .errorlist { @apply mt-1 space-y-0.5 text-sm text-red-600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-3">
+            <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
+                 class="h-10 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
+            <span class="hidden text-sm font-semibold text-navy sm:inline">WorkPulse</span>
+        </div>
+        <a href="{% url 'accounts:halaman_personel' %}"
+           class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+            &lsaquo; Kembali
+        </a>
+    </div>
+</header>
+
+<main class="mx-auto max-w-3xl px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-navy">Laporan mingguan</h1>
+        <p class="mt-1 text-sm text-slate-500">Isi kegiatan setiap hari kerja beserta masalah, tindakan, dan hasilnya.</p>
+    </div>
+
+    <form method="post" class="form-laporan space-y-5" id="form-laporan">
         {% csrf_token %}
-        {{ form.non_field_errors }}
 
-        <p>
-            {{ form.periode_minggu.label_tag }}
-            {{ form.periode_minggu }}
-            {{ form.periode_minggu.errors }}
-        </p>
+        {% if form.non_field_errors %}
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="max-w-xs">
+                {{ form.periode_minggu.label_tag }}
+                {{ form.periode_minggu }}
+                {{ form.periode_minggu.errors }}
+            </div>
+        </section>
 
         {% for hari in form.blok_hari %}
-        <fieldset>
-            <legend>{{ hari.nama }}</legend>
-            <p>{{ hari.kegiatan.label_tag }}<br>{{ hari.kegiatan }}{{ hari.kegiatan.errors }}</p>
-            <p>{{ hari.masalah.label_tag }}<br>{{ hari.masalah }}</p>
-            <p>{{ hari.tindakan.label_tag }}<br>{{ hari.tindakan }}</p>
-            <p>{{ hari.hasil.label_tag }}<br>{{ hari.hasil }}</p>
-        </fieldset>
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-4 flex items-center gap-3">
+                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-sm font-semibold text-white">{{ forloop.counter }}</span>
+                <h2 class="text-base font-semibold text-slate-800">{{ hari.nama }}</h2>
+            </div>
+
+            <div>
+                {{ hari.kegiatan.label_tag }}
+                {{ hari.kegiatan }}
+                {{ hari.kegiatan.errors }}
+            </div>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-3">
+                <div>
+                    {{ hari.masalah.label_tag }}
+                    {{ hari.masalah }}
+                </div>
+                <div>
+                    {{ hari.tindakan.label_tag }}
+                    {{ hari.tindakan }}
+                </div>
+                <div>
+                    {{ hari.hasil.label_tag }}
+                    {{ hari.hasil }}
+                </div>
+            </div>
+        </section>
         {% endfor %}
 
-        <button type="submit">Simpan Laporan</button>
+        <div class="sticky bottom-0 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+            <div class="flex items-center justify-end gap-3">
+                <a href="{% url 'accounts:halaman_personel' %}"
+                   class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Batal
+                </a>
+                <button type="submit" id="tombol-simpan"
+                        class="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:cursor-not-allowed disabled:opacity-60">
+                    Simpan laporan
+                </button>
+            </div>
+        </div>
     </form>
-</body>
-</html>
+</main>
+
+<script>
+    document.getElementById('form-laporan').addEventListener('submit', function () {
+        var tombol = document.getElementById('tombol-simpan');
+        tombol.disabled = true;
+        tombol.textContent = 'Menyimpan...';
+    });
+</script>
+{% endblock %}
