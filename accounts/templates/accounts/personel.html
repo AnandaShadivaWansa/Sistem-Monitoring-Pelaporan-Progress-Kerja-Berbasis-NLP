@@ -1,37 +1,96 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Halaman Personel</title>
-</head>
-<body>
-    <h1>Halaman Personel</h1>
-    <p>Halo, {{ user.username }}.</p>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Beranda Personel | WorkPulse{% endblock %}
+
+{% block content %}
+<header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-3">
+            <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
+                 class="h-10 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
+            <span class="hidden text-sm font-semibold text-navy sm:inline">WorkPulse</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="hidden text-sm text-slate-500 sm:inline">
+                Masuk sebagai <span class="font-medium text-slate-700">{{ user.username }}</span>
+            </span>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Keluar
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="mx-auto max-w-4xl px-4 py-8">
 
     {% if messages %}
+    <div class="mb-6 space-y-2">
         {% for message in messages %}
-            <p style="color:green;">{{ message }}</p>
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status">
+            {{ message }}
+        </div>
         {% endfor %}
+    </div>
     {% endif %}
 
-    <p><a href="{% url 'laporan:buat' %}">Buat laporan mingguan</a></p>
-    
-    <h2>Laporan Saya</h2>
-    <ul>
-        {% for l in daftar_laporan %}
+    <section class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-navy">Halo, {{ user.username }}</h1>
+            <p class="mt-1 text-sm text-slate-500">Catat progress kerjamu setiap minggu dan pantau hasilnya di sini.</p>
+        </div>
+        <a href="{% url 'laporan:buat' %}"
+           class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40">
+            + Buat laporan mingguan
+        </a>
+    </section>
+
+    <section class="mt-8">
+        <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-slate-800">Laporan saya</h2>
+            <span class="text-sm text-slate-500">{{ daftar_laporan|length }} laporan</span>
+        </div>
+
+        {% if daftar_laporan %}
+        <ul class="space-y-3">
+            {% for l in daftar_laporan %}
             <li>
-                <a href="{% url 'laporan:detail' l.pk %}">
-                    Minggu {{ l.periode_minggu|date:"d/m/Y" }}
+                <a href="{% url 'laporan:detail' l.pk %}"
+                   class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-brand-500 hover:shadow">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-800">Minggu {{ l.periode_minggu|date:"d/m/Y" }}</p>
+                        <p class="mt-0.5 text-xs text-slate-500">Dibuat {{ l.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        {% if l.status_analisis == 'selesai' %}
+                        <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{{ l.get_status_analisis_display }}</span>
+                        {% elif l.status_analisis == 'proses' %}
+                        <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">{{ l.get_status_analisis_display }}</span>
+                        {% elif l.status_analisis == 'gagal' %}
+                        <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">{{ l.get_status_analisis_display }}</span>
+                        {% else %}
+                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{{ l.get_status_analisis_display }}</span>
+                        {% endif %}
+                        <span class="text-slate-400" aria-hidden="true">&rsaquo;</span>
+                    </div>
                 </a>
             </li>
-        {% empty %}
-            <li>Belum ada laporan.</li>
-        {% endfor %}
-    </ul>
-
-    <form method="post" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-        <button type="submit">Keluar</button>
-    </form>
-</body>
-</html>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+            <p class="text-sm font-medium text-slate-700">Belum ada laporan.</p>
+            <p class="mt-1 text-sm text-slate-500">Mulai dengan membuat laporan mingguan pertamamu.</p>
+            <a href="{% url 'laporan:buat' %}"
+               class="mt-5 inline-flex rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700">
+                + Buat laporan mingguan
+            </a>
+        </div>
+        {% endif %}
+    </section>
+</main>
+{% endblock %}
