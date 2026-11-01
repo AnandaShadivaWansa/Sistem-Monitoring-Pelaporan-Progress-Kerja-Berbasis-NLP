@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.views import role_required
 
-from .analisis import kelompokkan
+from .analisis import analisis_laporan, kelompokkan
 from .forms import LaporanMingguanForm
 from .models import Feedback, KegiatanHarian, Laporan
 
@@ -28,6 +28,9 @@ def buat_laporan(request):
                     KegiatanHarian(laporan=laporan, **data)
                     for data in form.data_kegiatan()
                 ])
+            # Analisis dijalankan setelah laporan tersimpan; kegagalan analisis
+            # tidak membatalkan laporan (status_analisis menjadi 'gagal').
+            analisis_laporan(laporan)
             messages.success(request, 'Laporan berhasil disimpan.')
             return redirect('laporan:detail', pk=laporan.pk)
     else:
@@ -40,6 +43,10 @@ def detail_laporan(request, pk):
     laporan = get_object_or_404(Laporan, pk=pk)
     if request.user.role != 'spv' and laporan.personel != request.user:
         raise PermissionDenied
+
+    # Laporan lama yang belum pernah dianalisis dianalisis saat pertama dibuka.
+    if laporan.status_analisis == 'belum':
+        analisis_laporan(laporan)
 
     kelompok = kelompokkan(laporan)
     jumlah = {kategori: len(item) for kategori, item in kelompok.items()}
