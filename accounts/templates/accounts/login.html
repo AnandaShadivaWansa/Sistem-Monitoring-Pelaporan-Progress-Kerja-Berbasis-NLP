@@ -16,24 +16,13 @@
             <h1 class="text-center text-2xl font-bold text-navy">Selamat datang</h1>
             <p class="mt-1 text-center text-sm text-slate-500">Masuk ke sistem pelaporan progress kerja</p>
 
-            <div class="mt-6 grid grid-cols-2 gap-2" id="pilih-peran">
-                <button type="button" data-peran="spv"
-                        class="peran rounded-lg border px-3 py-2 text-sm font-medium transition">
-                    Supervisor (SPV)
-                </button>
-                <button type="button" data-peran="personel"
-                        class="peran rounded-lg border px-3 py-2 text-sm font-medium transition">
-                    Personel
-                </button>
-            </div>
-
             {% if error %}
-            <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+            <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
                 {{ error }}
             </div>
             {% endif %}
 
-            <form method="post" class="mt-5 space-y-4">
+            <form method="post" class="mt-6 space-y-4">
                 {% csrf_token %}
                 <div>
                     <label for="username" class="mb-1 block text-sm font-medium text-slate-700">Username</label>
@@ -55,23 +44,4 @@
         </div>
     </div>
 </main>
-
-<script>
-    (function () {
-        var tombol = document.querySelectorAll('#pilih-peran .peran');
-        var aktif = ['bg-navy', 'text-white', 'border-navy'];
-        var nonaktif = ['bg-white', 'text-slate-700', 'border-slate-300', 'hover:bg-slate-50'];
-        function pilih(peran) {
-            tombol.forEach(function (t) {
-                var sama = t.dataset.peran === peran;
-                aktif.forEach(function (c) { t.classList.toggle(c, sama); });
-                nonaktif.forEach(function (c) { t.classList.toggle(c, !sama); });
-            });
-        }
-        tombol.forEach(function (t) {
-            t.addEventListener('click', function () { pilih(t.dataset.peran); });
-        });
-        pilih('spv');
-    })();
-</script>
 {% endblock %}
