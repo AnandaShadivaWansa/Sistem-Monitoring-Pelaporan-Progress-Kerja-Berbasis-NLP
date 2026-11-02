@@ -142,7 +142,25 @@ def analisis_laporan(laporan):
 
     Laporan.objects.filter(pk=laporan.pk).update(status_analisis=status)
     laporan.status_analisis = status
+    if status == 'selesai':
+        perbarui_ringkasan(laporan)
     return status
+
+
+def perbarui_ringkasan(laporan):
+    """Membuat ringkasan TextRank dari kegiatan yang sudah dikelompokkan
+    (koreksi SPV ikut diperhitungkan) lalu menyimpannya ke HasilAnalisis.ringkasan.
+    Kegagalan ringkasan tidak memengaruhi hasil klasifikasi."""
+    from .models import HasilAnalisis
+    from .ringkasan import buat_ringkasan
+
+    try:
+        teks = buat_ringkasan(kelompokkan(laporan))
+        HasilAnalisis.objects.filter(laporan=laporan).update(ringkasan=teks)
+        return teks
+    except Exception:
+        logger.exception('Ringkasan laporan %s gagal dibuat.', laporan.pk)
+        return ''
 
 
 def kelompokkan(laporan):
