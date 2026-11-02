@@ -90,6 +90,33 @@
         {% endif %}
     </section>
 
+    <!-- Ringkasan mingguan otomatis (TextRank) -->
+    {% with ringkasan=laporan.hasil_analisis.ringkasan %}
+    {% if ringkasan %}
+    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold text-slate-800">Ringkasan Mingguan</h2>
+            <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">Dibuat otomatis</span>
+        </div>
+        <div class="mt-4 space-y-1 text-sm">
+            {% for baris in ringkasan.splitlines %}
+                {% if baris == 'Progress:' %}
+                <p class="flex items-center gap-2 font-semibold text-emerald-700">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>Progress
+                </p>
+                {% elif baris == 'Kendala:' %}
+                <p class="flex items-center gap-2 pt-3 font-semibold text-red-700">
+                    <span class="h-2 w-2 rounded-full bg-red-500"></span>Kendala
+                </p>
+                {% elif baris|slice:':2' == '- ' %}
+                <p class="ml-1 border-l-2 border-slate-200 pl-3 text-slate-700">{{ baris|slice:'2:' }}</p>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% endwith %}
+
     <!-- Kendala (ditaruh paling atas karena paling perlu perhatian) -->
     <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
@@ -253,4 +280,4 @@
         {% endif %}
     </section>
 </main>
-{% endblock %}  
+{% endblock %}
