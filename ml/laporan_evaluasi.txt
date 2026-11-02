@@ -1,50 +1,50 @@
-Jumlah baris: 121 (asli=100, sintetis=21)
+Jumlah baris: 295 (asli=274, sintetis=21)
 Jumlah per label (asli + sintetis):
-  selesai: 48 + 0
-  pending: 33 + 0
-  kendala: 16 + 0
-  improvement: 3 + 21
-PERINGATAN: data ASLI < 25 baris untuk: kendala, improvement. Hasil evaluasi kelas ini hanya perkiraan awal.
+  selesai: 133 + 0
+  pending: 98 + 0
+  kendala: 32 + 0
+  improvement: 11 + 21
+PERINGATAN: data ASLI < 25 baris untuk: improvement. Hasil evaluasi kelas ini hanya perkiraan awal.
 
-Metode evaluasi: cross-validation 3-fold, uji HANYA data asli (data sintetis=21 hanya ikut melatih; hasil bersifat perkiraan awal)
-Jumlah data uji per label: selesai=48, pending=33, kendala=16, improvement=3
+Metode evaluasi: hold-out per kelompok sumber+minggu, uji HANYA data asli (latih asli=226 + sintetis=21, uji asli=48, seed=0)
+Jumlah data uji per label: selesai=23, pending=13, kendala=10, improvement=2
 
 == MODEL (TF-IDF + Logistic Regression) ==
               precision    recall  f1-score   support
 
-     selesai      0.837     0.854     0.845        48
-     pending      0.743     0.788     0.765        33
-     kendala      0.750     0.562     0.643        16
- improvement      0.750     1.000     0.857         3
+     selesai      0.875     0.913     0.894        23
+     pending      0.706     0.923     0.800        13
+     kendala      1.000     0.500     0.667        10
+ improvement      1.000     1.000     1.000         2
 
-    accuracy                          0.790       100
-   macro avg      0.770     0.801     0.778       100
-weighted avg      0.789     0.790     0.787       100
+    accuracy                          0.833        48
+   macro avg      0.895     0.834     0.840        48
+weighted avg      0.860     0.833     0.825        48
 
 Confusion matrix:
 baris=aktual, kolom=prediksi
                   selesai    pending    kendala  improveme
-selesai                41          5          1          1
-pending                 5         26          2          0
-kendala                 3          4          9          0
-improvement             0          0          0          3
+selesai                21          2          0          0
+pending                 1         12          0          0
+kendala                 2          3          5          0
+improvement             0          0          0          2
 
 == PEMBANDING (aturan kata kunci) ==
               precision    recall  f1-score   support
 
-     selesai      0.667     0.750     0.706        48
-     pending      0.560     0.424     0.483        33
-     kendala      0.300     0.375     0.333        16
- improvement      0.000     0.000     0.000         3
+     selesai      0.708     0.739     0.723        23
+     pending      0.357     0.385     0.370        13
+     kendala      0.143     0.100     0.118        10
+ improvement      0.667     1.000     0.800         2
 
-    accuracy                          0.560       100
-   macro avg      0.382     0.387     0.380       100
-weighted avg      0.553     0.560     0.551       100
+    accuracy                          0.521        48
+   macro avg      0.469     0.556     0.503        48
+weighted avg      0.494     0.521     0.505        48
 
 
-F1 macro model     : 0.778
-F1 macro pembanding: 0.380
-Selisih            : +0.397
-Target F1 >= 0.80: belum tercapai
+F1 macro model     : 0.840
+F1 macro pembanding: 0.503
+Selisih            : +0.337
+Target F1 >= 0.80: TERCAPAI
 
 Model disimpan ke: ml/model.joblib
