@@ -42,7 +42,7 @@ def buat_pipeline() -> Pipeline:
         # tanpa fungsi buatan sendiri, agar model.joblib bisa dimuat dari aplikasi Django mana pun.
         ("tfidf", TfidfVectorizer(lowercase=True, token_pattern=r"(?u)\b[a-z0-9]{2,}\b",
                                   ngram_range=(1, 2), sublinear_tf=True)),
-        ("clf", LogisticRegression(max_iter=1000, class_weight="balanced")),
+        ("clf", LogisticRegression(max_iter=1000, class_weight="balanced", C=3)),
     ])
 
 
