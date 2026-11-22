@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen lg:flex">
+
+    <!-- Latar gelap saat menu dibuka di layar kecil -->
+    <div id="latar-menu" class="fixed inset-0 z-30 hidden bg-slate-900/40 lg:hidden"></div>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside id="sidebar"
+           class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-navy text-white transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0">
+
+        <div class="flex items-center justify-between px-5 py-5">
+            <div class="flex items-center gap-3">
+                <img src="{% static 'accounts/logo.jpeg' %}" alt=""
+                     class="h-10 w-10 rounded-lg bg-white object-contain p-1" onerror="this.style.display='none'">
+                <div>
+                    <p class="text-base font-bold leading-tight">WorkPulse</p>
+                    <p class="text-xs text-blue-200">Monitoring Progress Kerja</p>
+                </div>
+            </div>
+            <button id="tombol-tutup-menu" type="button"
+                    class="rounded-lg p-1.5 text-blue-100 hover:bg-white/10 lg:hidden" aria-label="Tutup menu">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+        </div>
+
+        <p class="px-6 pt-2 text-[11px] font-semibold uppercase tracking-wider text-blue-300">Menu</p>
+        <nav class="mt-2 flex-1 space-y-1 px-3" aria-label="Menu utama">
+            {% block menu %}{% endblock %}
+        </nav>
+
+        <div class="border-t border-white/10 p-4">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold">
+                    {{ user.username|first|upper }}
+                </div>
+                <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="text-xs text-blue-200">{% block peran %}{% endblock %}</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'accounts:logout' %}" class="mt-4">
+                {% csrf_token %}
+                <button type="submit"
+                        class="w-full rounded-lg border border-white/20 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40">
+                    Keluar
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ================= AREA KANAN ================= -->
+    <div class="flex min-w-0 flex-1 flex-col">
+
+        <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+            <div class="flex items-center gap-3 px-4 py-3 sm:px-8">
+                <button id="tombol-menu" type="button"
+                        class="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 lg:hidden"
+                        aria-label="Buka menu" aria-controls="sidebar" aria-expanded="false">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="min-w-0">
+                    <p class="text-xs text-slate-500">{% block breadcrumb %}{% endblock %}</p>
+                    <h1 class="truncate text-lg font-semibold text-navy">{% block judul_halaman %}{% endblock %}</h1>
+                </div>
+                <div class="ml-auto">{% block aksi_header %}{% endblock %}</div>
+            </div>
+        </header>
+
+        <main class="flex-1 px-4 py-6 sm:px-8 sm:py-8">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div role="status"
+                     class="rounded-lg border px-4 py-3 text-sm
+                     {% if 'error' in message.tags %}border-red-200 bg-red-50 text-red-700
+                     {% elif 'warning' in message.tags %}border-amber-200 bg-amber-50 text-amber-700
+                     {% else %}border-emerald-200 bg-emerald-50 text-emerald-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block isi %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+    // Buka / tutup sidebar di layar kecil
+    const sidebar = document.getElementById('sidebar');
+    const latar = document.getElementById('latar-menu');
+    const tombolMenu = document.getElementById('tombol-menu');
+    const tombolTutup = document.getElementById('tombol-tutup-menu');
+
+    function bukaMenu() {
+        sidebar.classList.remove('-translate-x-full');
+        latar.classList.remove('hidden');
+        tombolMenu.setAttribute('aria-expanded', 'true');
+    }
+    function tutupMenu() {
+        sidebar.classList.add('-translate-x-full');
+        latar.classList.add('hidden');
+        tombolMenu.setAttribute('aria-expanded', 'false');
+    }
+    tombolMenu.addEventListener('click', bukaMenu);
+    tombolTutup.addEventListener('click', tutupMenu);
+    latar.addEventListener('click', tutupMenu);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') tutupMenu();
+    });
+</script>
+{% endblock %}
