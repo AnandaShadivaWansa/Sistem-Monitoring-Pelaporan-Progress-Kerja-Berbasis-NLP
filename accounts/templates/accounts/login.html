@@ -4,44 +4,130 @@
 {% block title %}Masuk | WorkPulse{% endblock %}
 
 {% block content %}
-<main class="flex min-h-screen items-center justify-center px-4 py-10">
-    <div class="w-full max-w-md">
+<main class="flex min-h-screen flex-col bg-slate-50 lg:flex-row">
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div class="mb-4 flex justify-center">
-                <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
-                     class="h-32 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
+    <!-- Panel kiri: identitas & keunggulan -->
+    <section class="relative hidden flex-1 flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0B2A5B] via-[#12408A] to-[#1668CC] px-14 py-12 text-white lg:flex">
+        <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white">
+                <img src="{% static 'accounts/logo.jpeg' %}" alt="" class="h-9 w-auto object-contain mix-blend-multiply"
+                     onerror="this.style.display='none'">
             </div>
-
-            <h1 class="text-center text-2xl font-bold text-navy">Selamat datang</h1>
-            <p class="mt-1 text-center text-sm text-slate-500">Masuk ke sistem pelaporan progress kerja</p>
-
-            {% if error %}
-            <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-                {{ error }}
-            </div>
-            {% endif %}
-
-            <form method="post" class="mt-6 space-y-4">
-                {% csrf_token %}
-                <div>
-                    <label for="username" class="mb-1 block text-sm font-medium text-slate-700">Username</label>
-                    <input id="username" type="text" name="username" required autofocus autocomplete="username"
-                           placeholder="Masukkan username"
-                           class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20">
-                </div>
-                <div>
-                    <label for="password" class="mb-1 block text-sm font-medium text-slate-700">Password</label>
-                    <input id="password" type="password" name="password" required autocomplete="current-password"
-                           placeholder="Masukkan password"
-                           class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20">
-                </div>
-                <button type="submit"
-                        class="w-full rounded-lg bg-brand-600 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40">
-                    Masuk
-                </button>
-            </form>
+            <span class="text-xl font-bold">WorkPulse</span>
         </div>
-    </div>
+
+        <div class="max-w-lg">
+            <h1 class="text-4xl font-extrabold leading-tight xl:text-5xl">Laporan kerja mingguan tanpa meeting panjang.</h1>
+            <p class="mt-4 text-base leading-relaxed text-blue-100">
+                Ketua tim melapor kapan saja, model NLP mengelompokkan setiap kegiatan,
+                dan supervisor memantau semua tim dari satu dashboard.
+            </p>
+
+            <ul class="mt-8 space-y-3">
+                <li class="flex gap-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
+                    <span class="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-white/15 font-bold">1</span>
+                    <div>
+                        <p class="font-semibold">Lapor kapan saja</p>
+                        <p class="text-sm text-blue-100">Isi Senin–Jumat dari meja kerja, tanpa menunggu rapat.</p>
+                    </div>
+                </li>
+                <li class="flex gap-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
+                    <span class="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-white/15 font-bold">2</span>
+                    <div>
+                        <p class="font-semibold">Analisis otomatis NLP</p>
+                        <p class="text-sm text-blue-100">Setiap kegiatan dikelompokkan: Selesai, Pending, Kendala, Improvement.</p>
+                    </div>
+                </li>
+                <li class="flex gap-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
+                    <span class="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-white/15 font-bold">3</span>
+                    <div>
+                        <p class="font-semibold">Satu dashboard</p>
+                        <p class="text-sm text-blue-100">Supervisor melihat progres dan kendala semua tim sekaligus.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <p class="text-sm text-blue-200">PBLIF3-MD13 · Sistem Monitoring Pelaporan Progress Kerja Berbasis NLP</p>
+    </section>
+
+    <!-- Panel kanan: form login -->
+    <section class="flex flex-1 items-center justify-center px-4 py-10">
+        <div class="w-full max-w-md">
+
+            <!-- Logo untuk layar kecil (panel kiri disembunyikan) -->
+            <div class="mb-6 flex justify-center lg:hidden">
+                <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
+                     class="h-24 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/60 sm:p-10">
+                <h2 class="text-2xl font-bold text-navy">Selamat datang</h2>
+                <p class="mt-1 text-sm text-slate-500">Masuk dengan akun yang diberikan admin.</p>
+
+                {% if error %}
+                <div class="mt-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                    <svg class="mt-0.5 h-4 w-4 flex-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/>
+                    </svg>
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+
+                <form method="post" class="mt-6 space-y-5" id="form-login">
+                    {% csrf_token %}
+                    <div>
+                        <label for="username" class="mb-1.5 block text-sm font-semibold text-slate-700">Username</label>
+                        <input id="username" type="text" name="username" required autofocus autocomplete="username"
+                               value="{{ request.POST.username|default:'' }}"
+                               placeholder="Contoh: rina_listrik"
+                               class="h-12 w-full rounded-lg border {% if error %}border-red-400{% else %}border-slate-300{% endif %} bg-white px-4 text-base outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+                    </div>
+
+                    <div>
+                        <label for="password" class="mb-1.5 block text-sm font-semibold text-slate-700">Password</label>
+                        <div class="relative">
+                            <input id="password" type="password" name="password" required autocomplete="current-password"
+                                   placeholder="Masukkan password"
+                                   class="h-12 w-full rounded-lg border {% if error %}border-red-400{% else %}border-slate-300{% endif %} bg-white pl-4 pr-20 text-base outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
+                            <button type="button" id="toggle-password"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-3 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50"
+                                    aria-controls="password" aria-label="Tampilkan password">
+                                Lihat
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="tombol-masuk"
+                            class="flex h-12 w-full items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:cursor-not-allowed disabled:opacity-70">
+                        Masuk
+                    </button>
+                </form>
+
+                <p class="mt-6 text-center text-xs text-slate-500">
+                    Lupa password atau belum punya akun? Hubungi supervisor atau admin sistem.
+                </p>
+            </div>
+        </div>
+    </section>
 </main>
+
+<script>
+    // Tampilkan / sembunyikan password
+    const inputPassword = document.getElementById('password');
+    const tombolLihat = document.getElementById('toggle-password');
+    tombolLihat.addEventListener('click', () => {
+        const tampil = inputPassword.type === 'password';
+        inputPassword.type = tampil ? 'text' : 'password';
+        tombolLihat.textContent = tampil ? 'Sembunyi' : 'Lihat';
+        tombolLihat.setAttribute('aria-label', tampil ? 'Sembunyikan password' : 'Tampilkan password');
+    });
+
+    // Umpan balik saat tombol Masuk ditekan
+    document.getElementById('form-login').addEventListener('submit', () => {
+        const tombol = document.getElementById('tombol-masuk');
+        tombol.disabled = true;
+        tombol.textContent = 'Memproses…';
+    });
+</script>
 {% endblock %}

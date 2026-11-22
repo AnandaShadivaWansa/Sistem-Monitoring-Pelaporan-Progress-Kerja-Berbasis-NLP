@@ -1,82 +1,121 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'layout_app.html' %}
 
 {% block title %}Beranda Personel | WorkPulse{% endblock %}
 
-{% block content %}
-<header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <div class="flex items-center gap-3">
-            <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
-                 class="h-10 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
-            <span class="hidden text-sm font-semibold text-navy sm:inline">WorkPulse</span>
-        </div>
-        <div class="flex items-center gap-3">
-            <span class="hidden text-sm text-slate-500 sm:inline">
-                Masuk sebagai <span class="font-medium text-slate-700">{{ user.username }}</span>
-            </span>
-            <form method="post" action="{% url 'accounts:logout' %}">
-                {% csrf_token %}
-                <button type="submit"
-                        class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                    Keluar
-                </button>
-            </form>
-        </div>
+{% block peran %}Personel{% endblock %}
+
+{% block menu %}
+{% url 'accounts:halaman_personel' as url_beranda %}
+{% url 'laporan:buat' as url_buat %}
+<a href="{{ url_beranda }}" {% if request.path == url_beranda %}aria-current="page"{% endif %}
+   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+   {% if request.path == url_beranda %}bg-white/15 text-white{% else %}text-blue-100 hover:bg-white/10{% endif %}">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+    Beranda
+</a>
+<a href="{{ url_buat }}" {% if request.path == url_buat %}aria-current="page"{% endif %}
+   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+   {% if request.path == url_buat %}bg-white/15 text-white{% else %}text-blue-100 hover:bg-white/10{% endif %}">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Buat Laporan
+</a>
+{% endblock %}
+
+{% block breadcrumb %}Personel{% endblock %}
+{% block judul_halaman %}Beranda{% endblock %}
+
+{% block aksi_header %}
+<a href="{% url 'laporan:buat' %}"
+   class="hidden items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 sm:inline-flex">
+    + Buat laporan
+</a>
+{% endblock %}
+
+{% block isi %}
+{% with laporan_urut=daftar_laporan|dictsortreversed:"periode_minggu" %}
+{% with terbaru=laporan_urut|first %}
+
+<!-- Sapaan -->
+<section class="overflow-hidden rounded-2xl bg-gradient-to-r from-navy to-brand-600 p-6 text-white shadow-sm sm:p-8">
+    <p class="text-sm text-blue-100">{% now "l, d F Y" %}</p>
+    <h2 class="mt-1 text-2xl font-bold">Halo, {{ user.get_full_name|default:user.username }}</h2>
+    <p class="mt-2 max-w-xl text-sm text-blue-100">
+        Catat kegiatanmu setiap hari. Sistem akan mengelompokkan butir kegiatan dan menyusun ringkasan untuk supervisor.
+    </p>
+    <a href="{% url 'laporan:buat' %}"
+       class="mt-5 inline-flex items-center rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white/60">
+        + Buat laporan mingguan
+    </a>
+</section>
+
+<!-- Ringkasan angka -->
+<section class="mt-6 grid gap-4 sm:grid-cols-3" aria-label="Ringkasan">
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Total laporan</p>
+        <p class="mt-2 text-3xl font-bold text-navy">{{ daftar_laporan|length }}</p>
+        <p class="mt-1 text-xs text-slate-400">Semua minggu yang sudah dikirim</p>
     </div>
-</header>
-
-<main class="mx-auto max-w-4xl px-4 py-8">
-
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status">
-            {{ message }}
-        </div>
-        {% endfor %}
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Laporan terakhir</p>
+        <p class="mt-2 text-xl font-bold text-navy">
+            {% if terbaru %}{{ terbaru.periode_minggu|date:"d M Y" }}{% else %}–{% endif %}
+        </p>
+        <p class="mt-1 text-xs text-slate-400">Periode minggu terbaru</p>
     </div>
-    {% endif %}
-
-    <section class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-navy">Halo, {{ user.username }}</h1>
-            <p class="mt-1 text-sm text-slate-500">Catat progress kerjamu setiap minggu dan pantau hasilnya di sini.</p>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">Status analisis terakhir</p>
+        <div class="mt-3">
+            {% if terbaru %}
+                {% if terbaru.status_analisis == 'selesai' %}
+                <span class="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">{{ terbaru.get_status_analisis_display }}</span>
+                {% elif terbaru.status_analisis == 'proses' %}
+                <span class="rounded-full bg-amber-50 px-3 py-1 text-sm font-medium text-amber-700">{{ terbaru.get_status_analisis_display }}</span>
+                {% elif terbaru.status_analisis == 'gagal' %}
+                <span class="rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-700">{{ terbaru.get_status_analisis_display }}</span>
+                {% else %}
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-600">{{ terbaru.get_status_analisis_display }}</span>
+                {% endif %}
+            {% else %}
+            <span class="text-xl font-bold text-navy">–</span>
+            {% endif %}
         </div>
-        <a href="{% url 'laporan:buat' %}"
-           class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40">
-            + Buat laporan mingguan
-        </a>
-    </section>
+        <p class="mt-2 text-xs text-slate-400">Hasil pengelompokan otomatis</p>
+    </div>
+</section>
 
-    <section class="mt-8">
+<div class="mt-8 grid gap-6 lg:grid-cols-3">
+
+    <!-- Daftar laporan -->
+    <section class="lg:col-span-2" id="laporan-saya">
         <div class="mb-3 flex items-center justify-between">
             <h2 class="text-lg font-semibold text-slate-800">Laporan saya</h2>
             <span class="text-sm text-slate-500">{{ daftar_laporan|length }} laporan</span>
         </div>
 
-        {% if daftar_laporan %}
+        {% if laporan_urut %}
         <ul class="space-y-3">
-            {% for l in daftar_laporan %}
+            {% for l in laporan_urut %}
             <li>
                 <a href="{% url 'laporan:detail' l.pk %}"
-                   class="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-brand-500 hover:shadow">
-                    <div>
-                        <p class="text-sm font-semibold text-slate-800">Minggu {{ l.periode_minggu|date:"d/m/Y" }}</p>
-                        <p class="mt-0.5 text-xs text-slate-500">Dibuat {{ l.created_at|date:"d/m/Y H:i" }}</p>
+                   class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:border-brand-500 hover:shadow focus:outline-none focus:ring-2 focus:ring-brand-500/40">
+                    <div class="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-blue-50 text-brand-700">
+                        <span class="text-base font-bold leading-none">{{ l.periode_minggu|date:"d" }}</span>
+                        <span class="text-[10px] font-medium uppercase">{{ l.periode_minggu|date:"M" }}</span>
                     </div>
-                    <div class="flex items-center gap-3">
-                        {% if l.status_analisis == 'selesai' %}
-                        <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{{ l.get_status_analisis_display }}</span>
-                        {% elif l.status_analisis == 'proses' %}
-                        <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">{{ l.get_status_analisis_display }}</span>
-                        {% elif l.status_analisis == 'gagal' %}
-                        <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">{{ l.get_status_analisis_display }}</span>
-                        {% else %}
-                        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{{ l.get_status_analisis_display }}</span>
-                        {% endif %}
-                        <span class="text-slate-400" aria-hidden="true">&rsaquo;</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-slate-800">Minggu {{ l.periode_minggu|date:"d M Y" }}</p>
+                        <p class="mt-0.5 text-xs text-slate-500">Dikirim {{ l.created_at|date:"d/m/Y H:i" }}</p>
                     </div>
+                    {% if l.status_analisis == 'selesai' %}
+                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{{ l.get_status_analisis_display }}</span>
+                    {% elif l.status_analisis == 'proses' %}
+                    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">{{ l.get_status_analisis_display }}</span>
+                    {% elif l.status_analisis == 'gagal' %}
+                    <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">{{ l.get_status_analisis_display }}</span>
+                    {% else %}
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{{ l.get_status_analisis_display }}</span>
+                    {% endif %}
+                    <span class="text-slate-400" aria-hidden="true">&rsaquo;</span>
                 </a>
             </li>
             {% endfor %}
@@ -92,5 +131,27 @@
         </div>
         {% endif %}
     </section>
-</main>
+
+    <!-- Cara kerja -->
+    <aside class="h-fit rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="text-base font-semibold text-slate-800">Cara kerja laporan</h2>
+        <ol class="mt-4 space-y-4">
+            <li class="flex gap-3">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-brand-700">1</span>
+                <p class="text-sm text-slate-600">Tulis butir kegiatan untuk setiap hari kerja, Senin sampai Jumat.</p>
+            </li>
+            <li class="flex gap-3">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-brand-700">2</span>
+                <p class="text-sm text-slate-600">Sistem mengelompokkan tiap butir menjadi <b>Selesai</b>, <b>Pending</b>, <b>Kendala</b>, atau <b>Improvement</b>.</p>
+            </li>
+            <li class="flex gap-3">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-bold text-brand-700">3</span>
+                <p class="text-sm text-slate-600">Ringkasan otomatis dikirim ke supervisor untuk dibaca dan diberi tanggapan.</p>
+            </li>
+        </ol>
+    </aside>
+</div>
+
+{% endwith %}
+{% endwith %}
 {% endblock %}

@@ -1,136 +1,149 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'layout_app.html' %}
 
 {% block title %}Detail Laporan | WorkPulse{% endblock %}
 
-{% block content %}
-<header class="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        <div class="flex items-center gap-3">
-            <img src="{% static 'accounts/logo.jpeg' %}" alt="WorkPulse"
-                 class="h-10 w-auto object-contain mix-blend-multiply" onerror="this.style.display='none'">
-            <span class="hidden text-sm font-semibold text-navy sm:inline">WorkPulse</span>
+{% block peran %}{% if request.user.role == 'spv' %}Supervisor{% else %}Personel{% endif %}{% endblock %}
+
+{% block menu %}
+{% if request.user.role == 'spv' %}
+<a href="{% url 'accounts:dashboard_spv' %}"
+   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-100 transition hover:bg-white/10">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/></svg>
+    Dashboard
+</a>
+{% else %}
+<a href="{% url 'accounts:halaman_personel' %}"
+   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-100 transition hover:bg-white/10">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+    Beranda
+</a>
+<a href="{% url 'laporan:buat' %}"
+   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-100 transition hover:bg-white/10">
+    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Buat Laporan
+</a>
+{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}{% if request.user.role == 'spv' %}Supervisor / Dashboard{% else %}Personel / Laporan saya{% endif %}{% endblock %}
+{% block judul_halaman %}Detail Laporan{% endblock %}
+
+{% block aksi_header %}
+{% if request.user.role == 'spv' %}
+<a href="{% url 'accounts:dashboard_spv' %}"
+   class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+    &lsaquo; Kembali
+</a>
+{% else %}
+<a href="{% url 'accounts:halaman_personel' %}"
+   class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+    &lsaquo; Kembali
+</a>
+{% endif %}
+{% endblock %}
+
+{% block isi %}
+
+<!-- ============ Kartu judul ============ -->
+<section class="flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-navy to-brand-600 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 text-lg font-bold uppercase">
+            {{ laporan.personel.username|slice:":1" }}
         </div>
-        {% if request.user.role == 'spv' %}
-        <a href="{% url 'accounts:dashboard_spv' %}"
-           class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">&lsaquo; Kembali</a>
-        {% else %}
-        <a href="{% url 'accounts:halaman_personel' %}"
-           class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">&lsaquo; Kembali</a>
-        {% endif %}
+        <div>
+            <p class="text-xs font-medium uppercase tracking-wide text-blue-200">Laporan mingguan</p>
+            <h2 class="text-xl font-bold sm:text-2xl">{{ laporan.periode_minggu|date:"d M Y" }} &ndash; {{ akhir_minggu|date:"d M Y" }}</h2>
+            <p class="mt-0.5 text-sm text-blue-100">Personel: <span class="font-semibold text-white">{{ laporan.personel.get_full_name|default:laporan.personel.username }}</span></p>
+        </div>
     </div>
-</header>
-
-<main class="mx-auto max-w-4xl px-4 py-8">
-
-    {% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-        <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" role="status">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Judul laporan -->
-    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-                <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Laporan mingguan</p>
-                <h1 class="mt-1 text-2xl font-bold text-navy">
-                    {{ laporan.periode_minggu|date:"d/m/Y" }} &ndash; {{ akhir_minggu|date:"d/m/Y" }}
-                </h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    Personel: <span class="font-medium text-slate-700">{{ laporan.personel.username }}</span>
-                </p>
-            </div>
-            {% with versi=laporan.hasil_analisis.versi_model %}
-            {% if versi %}
-            <span class="inline-flex items-center gap-1.5 self-start rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-                <span class="h-1.5 w-1.5 rounded-full {% if versi == 'aturan' %}bg-slate-400{% else %}bg-brand-500{% endif %}"></span>
-                {% if versi == 'aturan' %}Dianalisis dengan aturan cadangan{% else %}Dianalisis dengan model NLP{% endif %}
-            </span>
-            {% endif %}
-            {% endwith %}
-        </div>
-    </section>
-
-    <!-- Ringkasan angka -->
-    <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Selesai</p>
-            <p class="mt-1 text-2xl font-bold text-emerald-600">{{ jumlah.selesai }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Pending</p>
-            <p class="mt-1 text-2xl font-bold text-amber-600">{{ jumlah.pending }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Kendala</p>
-            <p class="mt-1 text-2xl font-bold text-red-600">{{ jumlah.kendala }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p class="text-xs font-medium text-slate-500">Improvement</p>
-            <p class="mt-1 text-2xl font-bold text-brand-600">{{ jumlah.improvement }}</p>
-        </div>
-    </section>
-
-    <section class="mt-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p class="text-sm text-slate-600">
-            Minggu ini terdapat <span class="font-semibold text-slate-800">{{ total }} kegiatan</span>:
-            {{ jumlah.selesai }} selesai, {{ jumlah.pending }} pending,
-            {{ jumlah.kendala }} mengalami kendala, dan {{ jumlah.improvement }} improvement.
-        </p>
-        {% if total %}
-        <div class="mt-3 flex h-2.5 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
-            <div class="bg-emerald-500 w-[{% widthratio jumlah.selesai total 100 %}%]"></div>
-            <div class="bg-amber-400 w-[{% widthratio jumlah.pending total 100 %}%]"></div>
-            <div class="bg-red-500 w-[{% widthratio jumlah.kendala total 100 %}%]"></div>
-            <div class="bg-brand-500 w-[{% widthratio jumlah.improvement total 100 %}%]"></div>
-        </div>
-        {% endif %}
-    </section>
-
-    <!-- Ringkasan mingguan otomatis (TextRank) -->
-    {% with ringkasan=laporan.hasil_analisis.ringkasan %}
-    {% if ringkasan %}
-    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex items-center justify-between">
-            <h2 class="text-base font-semibold text-slate-800">Ringkasan Mingguan</h2>
-            <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">Dibuat otomatis</span>
-        </div>
-        <div class="mt-4 space-y-1 text-sm">
-            {% for baris in ringkasan.splitlines %}
-                {% if baris == 'Progress:' %}
-                <p class="flex items-center gap-2 font-semibold text-emerald-700">
-                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>Progress
-                </p>
-                {% elif baris == 'Kendala:' %}
-                <p class="flex items-center gap-2 pt-3 font-semibold text-red-700">
-                    <span class="h-2 w-2 rounded-full bg-red-500"></span>Kendala
-                </p>
-                {% elif baris|slice:':2' == '- ' %}
-                <p class="ml-1 border-l-2 border-slate-200 pl-3 text-slate-700">{{ baris|slice:'2:' }}</p>
-                {% endif %}
-            {% endfor %}
-        </div>
-    </section>
+    {% with versi=laporan.hasil_analisis.versi_model %}
+    {% if versi %}
+    <span class="inline-flex items-center gap-1.5 self-start rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white sm:self-center">
+        <span class="h-1.5 w-1.5 rounded-full {% if versi == 'aturan' %}bg-slate-300{% else %}bg-emerald-300{% endif %}"></span>
+        {% if versi == 'aturan' %}Dianalisis dengan aturan cadangan{% else %}Dianalisis dengan model NLP{% endif %}
+    </span>
     {% endif %}
     {% endwith %}
+</section>
 
-    <!-- Kendala (ditaruh paling atas karena paling perlu perhatian) -->
-    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                <h2 class="text-base font-semibold text-slate-800">Kendala</h2>
+<!-- ============ Angka + distribusi ============ -->
+<section class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4" aria-label="Jumlah per kategori">
+    <div class="rounded-xl border border-slate-200 border-l-4 border-l-red-500 bg-white p-4 shadow-sm">
+        <p class="text-sm text-slate-500">Kendala</p>
+        <p class="mt-1 text-3xl font-bold text-red-600">{{ jumlah.kendala }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 border-l-4 border-l-amber-400 bg-white p-4 shadow-sm">
+        <p class="text-sm text-slate-500">Pending</p>
+        <p class="mt-1 text-3xl font-bold text-amber-600">{{ jumlah.pending }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 border-l-4 border-l-emerald-500 bg-white p-4 shadow-sm">
+        <p class="text-sm text-slate-500">Selesai</p>
+        <p class="mt-1 text-3xl font-bold text-emerald-600">{{ jumlah.selesai }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 border-l-4 border-l-brand-500 bg-white p-4 shadow-sm">
+        <p class="text-sm text-slate-500">Improvement</p>
+        <p class="mt-1 text-3xl font-bold text-brand-600">{{ jumlah.improvement }}</p>
+    </div>
+</section>
+
+<section class="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <p class="text-sm text-slate-600">
+        Minggu ini terdapat <span class="font-semibold text-slate-800">{{ total }} kegiatan</span>:
+        {{ jumlah.selesai }} selesai, {{ jumlah.pending }} pending,
+        {{ jumlah.kendala }} mengalami kendala, dan {{ jumlah.improvement }} improvement.
+    </p>
+    {% if total %}
+    <div class="mt-3 flex h-3 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+        <div class="bg-emerald-500" data-lebar="{% widthratio jumlah.selesai total 100 %}"></div>
+        <div class="bg-amber-400" data-lebar="{% widthratio jumlah.pending total 100 %}"></div>
+        <div class="bg-red-500" data-lebar="{% widthratio jumlah.kendala total 100 %}"></div>
+        <div class="bg-brand-500" data-lebar="{% widthratio jumlah.improvement total 100 %}"></div>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+        <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Selesai {% widthratio jumlah.selesai total 100 %}%</span>
+        <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-amber-400"></span>Pending {% widthratio jumlah.pending total 100 %}%</span>
+        <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-red-500"></span>Kendala {% widthratio jumlah.kendala total 100 %}%</span>
+        <span class="flex items-center gap-1.5"><span class="h-2 w-2 rounded-full bg-brand-500"></span>Improvement {% widthratio jumlah.improvement total 100 %}%</span>
+    </div>
+    {% endif %}
+</section>
+
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+    <!-- ============ Kolom kiri: kegiatan per kategori ============ -->
+    <section class="h-fit overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:col-span-2">
+        <div class="border-b border-slate-200 px-5 pt-4">
+            <h2 class="text-base font-semibold text-slate-800">Kegiatan per kategori</h2>
+            <div class="mt-3 flex gap-1 overflow-x-auto" role="tablist" aria-label="Kategori kegiatan">
+                <button type="button" role="tab" data-kat-tab aria-controls="kat-kendala" aria-selected="false" tabindex="-1"
+                        class="flex shrink-0 items-center gap-2 border-b-2 border-transparent px-3 pb-3 text-sm font-medium text-slate-500 transition hover:text-slate-800 aria-selected:border-red-500 aria-selected:text-slate-900">
+                    <span class="h-2 w-2 rounded-full bg-red-500"></span>Kendala
+                    <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">{{ jumlah.kendala }}</span>
+                </button>
+                <button type="button" role="tab" data-kat-tab aria-controls="kat-pending" aria-selected="false" tabindex="-1"
+                        class="flex shrink-0 items-center gap-2 border-b-2 border-transparent px-3 pb-3 text-sm font-medium text-slate-500 transition hover:text-slate-800 aria-selected:border-amber-400 aria-selected:text-slate-900">
+                    <span class="h-2 w-2 rounded-full bg-amber-400"></span>Pending
+                    <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">{{ jumlah.pending }}</span>
+                </button>
+                <button type="button" role="tab" data-kat-tab aria-controls="kat-selesai" aria-selected="false" tabindex="-1"
+                        class="flex shrink-0 items-center gap-2 border-b-2 border-transparent px-3 pb-3 text-sm font-medium text-slate-500 transition hover:text-slate-800 aria-selected:border-emerald-500 aria-selected:text-slate-900">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500"></span>Selesai
+                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">{{ jumlah.selesai }}</span>
+                </button>
+                <button type="button" role="tab" data-kat-tab aria-controls="kat-improvement" aria-selected="false" tabindex="-1"
+                        class="flex shrink-0 items-center gap-2 border-b-2 border-transparent px-3 pb-3 text-sm font-medium text-slate-500 transition hover:text-slate-800 aria-selected:border-brand-500 aria-selected:text-slate-900">
+                    <span class="h-2 w-2 rounded-full bg-brand-500"></span>Improvement
+                    <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-brand-700">{{ jumlah.improvement }}</span>
+                </button>
             </div>
-            <span class="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700">{{ jumlah.kendala }}</span>
         </div>
-        <ul class="divide-y divide-slate-100">
+
+        <!-- Kendala -->
+        <ul id="kat-kendala" role="tabpanel" data-kat-panel class="divide-y divide-slate-100">
             {% for k in kelompok.kendala %}
-            <li class="px-6 py-4">
+            <li class="px-5 py-4">
                 <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"d/m" }}</span>
+                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"D, d M" }}</span>
                     {% if k.sumber_ml == 'koreksi' %}<span class="rounded-md bg-violet-50 px-2 py-0.5 font-medium text-violet-700">Dikoreksi SPV</span>
                     {% elif k.skor_ml %}<span class="rounded-md bg-slate-50 px-2 py-0.5 text-slate-500">{% widthratio k.skor_ml 1 100 %}% yakin</span>{% endif %}
                 </div>
@@ -159,25 +172,16 @@
                 </dl>
             </li>
             {% empty %}
-            <li class="px-6 py-4 text-sm text-slate-400">Tidak ada kendala minggu ini.</li>
+            <li class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada kendala minggu ini.</li>
             {% endfor %}
         </ul>
-    </section>
 
-    <!-- Pending -->
-    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
-                <h2 class="text-base font-semibold text-slate-800">Pending</h2>
-            </div>
-            <span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">{{ jumlah.pending }}</span>
-        </div>
-        <ul class="divide-y divide-slate-100">
+        <!-- Pending -->
+        <ul id="kat-pending" role="tabpanel" data-kat-panel class="divide-y divide-slate-100" hidden>
             {% for k in kelompok.pending %}
-            <li class="px-6 py-4">
+            <li class="px-5 py-4">
                 <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"d/m" }}</span>
+                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"D, d M" }}</span>
                     {% if k.sumber_ml == 'koreksi' %}<span class="rounded-md bg-violet-50 px-2 py-0.5 font-medium text-violet-700">Dikoreksi SPV</span>
                     {% elif k.skor_ml %}<span class="rounded-md bg-slate-50 px-2 py-0.5 text-slate-500">{% widthratio k.skor_ml 1 100 %}% yakin</span>{% endif %}
                 </div>
@@ -187,97 +191,149 @@
                 {% endif %}
             </li>
             {% empty %}
-            <li class="px-6 py-4 text-sm text-slate-400">Tidak ada.</li>
+            <li class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada kegiatan pending.</li>
             {% endfor %}
         </ul>
-    </section>
 
-    <!-- Selesai -->
-    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                <h2 class="text-base font-semibold text-slate-800">Selesai</h2>
-            </div>
-            <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">{{ jumlah.selesai }}</span>
-        </div>
-        <ul class="divide-y divide-slate-100">
+        <!-- Selesai -->
+        <ul id="kat-selesai" role="tabpanel" data-kat-panel class="divide-y divide-slate-100" hidden>
             {% for k in kelompok.selesai %}
-            <li class="px-6 py-4">
+            <li class="px-5 py-4">
                 <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"d/m" }}</span>
+                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"D, d M" }}</span>
                     {% if k.sumber_ml == 'koreksi' %}<span class="rounded-md bg-violet-50 px-2 py-0.5 font-medium text-violet-700">Dikoreksi SPV</span>
                     {% elif k.skor_ml %}<span class="rounded-md bg-slate-50 px-2 py-0.5 text-slate-500">{% widthratio k.skor_ml 1 100 %}% yakin</span>{% endif %}
                 </div>
                 <p class="mt-2 text-sm font-medium text-slate-800">{{ k.kegiatan|linebreaksbr }}</p>
             </li>
             {% empty %}
-            <li class="px-6 py-4 text-sm text-slate-400">Tidak ada.</li>
+            <li class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada kegiatan selesai.</li>
             {% endfor %}
         </ul>
-    </section>
 
-    <!-- Improvement -->
-    <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <div class="flex items-center gap-2">
-                <span class="h-2.5 w-2.5 rounded-full bg-brand-500"></span>
-                <h2 class="text-base font-semibold text-slate-800">Improvement</h2>
-            </div>
-            <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-brand-700">{{ jumlah.improvement }}</span>
-        </div>
-        <ul class="divide-y divide-slate-100">
+        <!-- Improvement -->
+        <ul id="kat-improvement" role="tabpanel" data-kat-panel class="divide-y divide-slate-100" hidden>
             {% for k in kelompok.improvement %}
-            <li class="px-6 py-4">
+            <li class="px-5 py-4">
                 <div class="flex flex-wrap items-center gap-2 text-xs">
-                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"d/m" }}</span>
+                    <span class="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ k.tanggal|date:"D, d M" }}</span>
                     {% if k.sumber_ml == 'koreksi' %}<span class="rounded-md bg-violet-50 px-2 py-0.5 font-medium text-violet-700">Dikoreksi SPV</span>
                     {% elif k.skor_ml %}<span class="rounded-md bg-slate-50 px-2 py-0.5 text-slate-500">{% widthratio k.skor_ml 1 100 %}% yakin</span>{% endif %}
                 </div>
                 <p class="mt-2 text-sm font-medium text-slate-800">{{ k.kegiatan|linebreaksbr }}</p>
             </li>
             {% empty %}
-            <li class="px-6 py-4 text-sm text-slate-400">Tidak ada.</li>
+            <li class="px-5 py-10 text-center text-sm text-slate-400">Tidak ada improvement.</li>
             {% endfor %}
         </ul>
     </section>
 
-    <!-- Feedback supervisor -->
-    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-base font-semibold text-slate-800">Feedback supervisor</h2>
-        <div class="mt-4 space-y-3">
-            {% for f in laporan.feedback.all %}
-            <div class="flex gap-3">
-                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold uppercase text-white">
-                    {{ f.penulis.username|slice:":1" }}
-                </div>
-                <div class="flex-1 rounded-xl bg-slate-50 px-4 py-3">
-                    <p class="text-xs font-semibold text-slate-700">{{ f.penulis.username }}
-                        <span class="font-normal text-slate-400">&middot; {{ f.created_at|date:"d/m/Y H:i" }}</span>
-                    </p>
-                    <p class="mt-1 text-sm text-slate-700">{{ f.isi|linebreaksbr }}</p>
-                </div>
-            </div>
-            {% empty %}
-            <p class="text-sm text-slate-400">Belum ada feedback.</p>
-            {% endfor %}
-        </div>
+    <!-- ============ Kolom kanan: ringkasan + feedback ============ -->
+    <div class="space-y-6">
 
-        {% if request.user.role == 'spv' %}
-        <form method="post" action="{% url 'laporan:feedback' laporan.pk %}" class="mt-5 border-t border-slate-100 pt-5">
-            {% csrf_token %}
-            <label for="isi-feedback" class="mb-1 block text-sm font-medium text-slate-700">Tulis feedback</label>
-            <textarea id="isi-feedback" name="isi" rows="3" maxlength="1000" required
-                      placeholder="Tulis masukan untuk laporan ini..."
-                      class="w-full resize-y rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20"></textarea>
-            <div class="mt-3 flex justify-end">
-                <button type="submit"
-                        class="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40">
-                    Kirim feedback
-                </button>
+        {% with ringkasan=laporan.hasil_analisis.ringkasan %}
+        {% if ringkasan %}
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <h2 class="text-base font-semibold text-slate-800">Ringkasan Mingguan</h2>
+                <span class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-500">Otomatis</span>
             </div>
-        </form>
+            <div class="mt-4 space-y-1 text-sm">
+                {% for baris in ringkasan.splitlines %}
+                    {% if baris == 'Progress:' %}
+                    <p class="flex items-center gap-2 font-semibold text-emerald-700">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>Progress
+                    </p>
+                    {% elif baris == 'Kendala:' %}
+                    <p class="flex items-center gap-2 pt-3 font-semibold text-red-700">
+                        <span class="h-2 w-2 rounded-full bg-red-500"></span>Kendala
+                    </p>
+                    {% elif baris|slice:':2' == '- ' %}
+                    <p class="ml-1 border-l-2 border-slate-200 pl-3 text-slate-700">{{ baris|slice:'2:' }}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
         {% endif %}
-    </section>
-</main>
+        {% endwith %}
+
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-800">Feedback supervisor</h2>
+            <div class="mt-4 space-y-3">
+                {% for f in laporan.feedback.all %}
+                <div class="flex gap-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold uppercase text-white">
+                        {{ f.penulis.username|slice:":1" }}
+                    </div>
+                    <div class="flex-1 rounded-xl bg-slate-50 px-4 py-3">
+                        <p class="text-xs font-semibold text-slate-700">{{ f.penulis.username }}
+                            <span class="font-normal text-slate-400">&middot; {{ f.created_at|date:"d/m/Y H:i" }}</span>
+                        </p>
+                        <p class="mt-1 text-sm text-slate-700">{{ f.isi|linebreaksbr }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-400">Belum ada feedback.</p>
+                {% endfor %}
+            </div>
+
+            {% if request.user.role == 'spv' %}
+            <form method="post" action="{% url 'laporan:feedback' laporan.pk %}" class="mt-5 border-t border-slate-100 pt-5" id="form-feedback">
+                {% csrf_token %}
+                <label for="isi-feedback" class="mb-1 block text-sm font-medium text-slate-700">Tulis feedback</label>
+                <textarea id="isi-feedback" name="isi" rows="3" maxlength="1000" required
+                          placeholder="Tulis masukan untuk laporan ini..."
+                          class="w-full resize-y rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20"></textarea>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-xs text-slate-400"><span id="hitung-feedback">0</span>/1000</span>
+                    <button type="submit" id="tombol-feedback"
+                            class="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 disabled:opacity-60">
+                        Kirim feedback
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+<script>
+    // Atur lebar bar distribusi
+    document.querySelectorAll('[data-lebar]').forEach(function (el) {
+        el.style.width = el.dataset.lebar + '%';
+    });
+
+    // Tab kategori
+    const katTabs = Array.from(document.querySelectorAll('[data-kat-tab]'));
+    const katPanels = Array.from(document.querySelectorAll('[data-kat-panel]'));
+
+    function tampilkanKat(i) {
+        katTabs.forEach(function (t, j) {
+            t.setAttribute('aria-selected', i === j ? 'true' : 'false');
+            t.tabIndex = i === j ? 0 : -1;
+        });
+        katPanels.forEach(function (p, j) { p.hidden = i !== j; });
+    }
+
+    katTabs.forEach(function (t, i) {
+        t.addEventListener('click', function () { tampilkanKat(i); });
+        t.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { const n = (i + 1) % katTabs.length; tampilkanKat(n); katTabs[n].focus(); }
+            if (e.key === 'ArrowLeft') { const n = (i - 1 + katTabs.length) % katTabs.length; tampilkanKat(n); katTabs[n].focus(); }
+        });
+    });
+    tampilkanKat(0);
+
+    // Form feedback (khusus supervisor)
+    const isiFeedback = document.getElementById('isi-feedback');
+    if (isiFeedback) {
+        const hitung = document.getElementById('hitung-feedback');
+        isiFeedback.addEventListener('input', function () { hitung.textContent = isiFeedback.value.length; });
+        document.getElementById('form-feedback').addEventListener('submit', function () {
+            const tombol = document.getElementById('tombol-feedback');
+            tombol.disabled = true;
+            tombol.textContent = 'Mengirim...';
+        });
+    }
+</script>
 {% endblock %}
