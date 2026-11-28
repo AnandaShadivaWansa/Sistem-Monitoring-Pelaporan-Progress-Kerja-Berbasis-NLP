@@ -19,3 +19,8 @@ media/
 media/
 ml/data/
 ml/buat_data_uji.py
+
+# Backup dataset dan hasil percobaan model (tidak diunggah)
+ml/data_backup*/
+ml/model_coba.joblib
+ml/laporan_coba.txt

@@ -9,7 +9,10 @@ Input : CSV UTF-8 dengan kolom minimal: minggu, sumber, butir_kegiatan, label
 Output: model.joblib  dan  laporan_evaluasi.txt
 
 Cara pakai (dari folder proyek, venv aktif):
-    python ml/train.py --data ml/data/dataset.csv
+    1) Data latih dan data uji di file terpisah (dibuat oleh ml/siapkan_dataset.py):
+       python ml/train.py --data ml/data/latih.csv --uji ml/data/uji.csv
+    2) Satu file saja (data uji dipilih otomatis dari file yang sama):
+       python ml/train.py --data ml/data/dataset.csv
 """
 import argparse
 import re
@@ -115,18 +118,74 @@ def sintetis_mask(df: pd.DataFrame) -> pd.Series:
     return df["sumber"].astype(str).str.upper().str.startswith("S")
 
 
+def jenis_sumber(sumber: str) -> str:
+    """Jenis data dari kode sumber: L/magang, K/kantor, S/sintetis."""
+    s = str(sumber).strip().lower()
+    if s.startswith("s"):
+        return "sintetis"
+    if s.startswith("l") or s == "magang":
+        return "magang"
+    if s.startswith("k") or s == "kantor":
+        return "kantor"
+    return "lainnya"
+
+
 def latih(x, y):
     return buat_pipeline().fit(x, y)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--data", required=True, help="path CSV dataset berlabel")
-    ap.add_argument("--out", default="ml/model.joblib")
-    ap.add_argument("--laporan", default="ml/laporan_evaluasi.txt")
-    a = ap.parse_args()
+def ringkas_label(judul: str, df: pd.DataFrame) -> list:
+    h = df["label"].value_counts().reindex(LABELS, fill_value=0)
+    return [f"{judul}: {len(df)} baris -> " + ", ".join(f"{l}={h[l]}" for l in LABELS)]
 
-    df = baca_data(Path(a.data))
+
+# ---------------------------------------------------------------- mode file uji terpisah
+def evaluasi_file_uji(path_latih: Path, path_uji: Path):
+    df_latih = baca_data(path_latih)
+    df_uji = baca_data(path_uji)
+
+    keluaran = ["Metode evaluasi: data latih dan data uji dari file terpisah",
+                f"  data latih: {path_latih}", f"  data uji  : {path_uji}"]
+
+    sint_uji = sintetis_mask(df_uji)
+    if sint_uji.any():
+        keluaran.append(f"PERINGATAN: {int(sint_uji.sum())} baris sintetis di data uji dibuang "
+                        "(data uji hanya boleh data asli).")
+        df_uji = df_uji[~sint_uji].reset_index(drop=True)
+
+    sama = set(df_latih["butir_kegiatan"].str.lower()) & set(df_uji["butir_kegiatan"].str.lower())
+    if sama:
+        keluaran.append(f"PERINGATAN: {len(sama)} kalimat muncul di data latih DAN data uji "
+                        "(kebocoran data). Jalankan ulang ml/siapkan_dataset.py.")
+
+    keluaran += ringkas_label("Data latih", df_latih) + ringkas_label("Data uji  ", df_uji)
+    kurang = [l for l in LABELS if (df_latih["label"] == l).sum() < 5]
+    if kurang:
+        raise SystemExit("Label dengan data latih < 5 baris: " + ", ".join(kurang) + ". Tambah data dulu.")
+
+    model_eval = latih(df_latih["butir_kegiatan"], df_latih["label"])
+    x_te = df_uji["butir_kegiatan"]
+    y_true = df_uji["label"].values
+    y_pred = model_eval.predict(x_te)
+    y_base = np.array([prediksi_aturan(t) for t in x_te])
+
+    # F1 per jenis data (magang vs kantor) di data uji
+    per_jenis = []
+    jenis = df_uji["sumber"].map(jenis_sumber).values
+    for j in ("magang", "kantor"):
+        m = jenis == j
+        if m.sum() > 0:
+            ada = [l for l in LABELS if l in set(y_true[m])]  # hanya label yang ada di data uji jenis ini
+            f1_j = f1_score(y_true[m], y_pred[m], labels=ada, average="macro", zero_division=0)
+            per_jenis.append(f"  {j:<7}: F1 macro {f1_j:.3f} ({int(m.sum())} baris uji)")
+
+    df_semua = pd.concat([df_latih, df_uji], ignore_index=True)
+    return keluaran, y_true, y_pred, y_base, per_jenis, df_semua
+
+
+# ---------------------------------------------------------------- mode satu file
+def evaluasi_satu_file(path: Path):
+    df = baca_data(path)
     sint = sintetis_mask(df)
     asli = df[~sint].reset_index(drop=True)
     buatan = df[sint].reset_index(drop=True)
@@ -176,12 +235,27 @@ def main():
         y_true, y_pred, y_base = np.array(y_true_l), np.array(y_pred_l), np.array(y_base_l)
         metode = (f"Metode evaluasi: cross-validation {k}-fold, uji HANYA data asli "
                   f"(data sintetis={len(buatan)} hanya ikut melatih; hasil bersifat perkiraan awal)")
+    keluaran += ["", metode]
+    return keluaran, y_true, y_pred, y_base, [], df
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data", required=True, help="path CSV dataset berlabel (data latih bila --uji dipakai)")
+    ap.add_argument("--uji", help="path CSV data uji terpisah (opsional)")
+    ap.add_argument("--out", default="ml/model.joblib")
+    ap.add_argument("--laporan", default="ml/laporan_evaluasi.txt")
+    a = ap.parse_args()
+
+    if a.uji:
+        keluaran, y_true, y_pred, y_base, per_jenis, df_semua = evaluasi_file_uji(Path(a.data), Path(a.uji))
+    else:
+        keluaran, y_true, y_pred, y_base, per_jenis, df_semua = evaluasi_satu_file(Path(a.data))
 
     dukungan = pd.Series(y_true).value_counts().reindex(LABELS, fill_value=0)
     f1_model = f1_score(y_true, y_pred, labels=LABELS, average="macro", zero_division=0)
     f1_base = f1_score(y_true, y_base, labels=LABELS, average="macro", zero_division=0)
     keluaran += [
-        "", metode,
         "Jumlah data uji per label: " + ", ".join(f"{l}={dukungan[l]}" for l in LABELS), "",
         "== MODEL (TF-IDF + Logistic Regression) ==", laporan_kelas(y_true, y_pred),
         "Confusion matrix:", matriks(y_true, y_pred), "",
@@ -191,13 +265,15 @@ def main():
         f"Selisih            : {f1_model - f1_base:+.3f}",
         f"Target F1 >= {TARGET_F1:.2f}: " + ("TERCAPAI" if f1_model >= TARGET_F1 else "belum tercapai"),
     ]
+    if per_jenis:
+        keluaran += ["", "F1 macro per jenis data uji:"] + per_jenis
 
-    # ---- latih model final dengan seluruh data (asli + sintetis) lalu simpan
-    final = latih(df["butir_kegiatan"], df["label"])
+    # ---- latih model final dengan seluruh data (latih + uji, termasuk sintetis) lalu simpan
+    final = latih(df_semua["butir_kegiatan"], df_semua["label"])
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump({"model": final, "labels": LABELS, "jumlah_data": n,
+    joblib.dump({"model": final, "labels": LABELS, "jumlah_data": len(df_semua),
                  "f1_macro_evaluasi": float(f1_model)}, a.out)
-    keluaran += ["", f"Model disimpan ke: {a.out}"]
+    keluaran += ["", f"Model final dilatih dengan {len(df_semua)} baris dan disimpan ke: {a.out}"]
 
     teks = "\n".join(keluaran)
     print(teks)
